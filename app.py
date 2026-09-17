@@ -18,13 +18,24 @@ def render_siderbar():
 
 def render_upload_screen():
     st.title("Recall Engine")
-    st.file_uploader("Upload PDF, JPEG, whatever here...", type=["pdf", "txt", "png", "jpg"])
+    upload_file = st.file_uploader("Upload PDF, JPEG, whatever here...", type=["pdf", "txt", "png", "jpg"])
 
     if st.button("Generate your study guide"):
 
         with st.spinner("Forging your study guide..."):
 
-            generated_text = gemini_service.generate_study_guide(st.session_state.context)
+            file_bytes = None
+            mime_type = None
+
+            if upload_file is not None:
+                file_bytes = upload_file.getvalue()
+                mime_type = upload_file.type
+
+            generated_text = gemini_service.generate_study_guide(
+                course_context=st.session_state.context,
+                file_bytes=file_bytes,
+                mime_type=mime_type)
+
 
             st.success("study time!")
             st.write(generated_text)
