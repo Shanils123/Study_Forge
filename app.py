@@ -10,10 +10,10 @@ def init_session_state():
         st.session_state.context = ""
 
 def render_siderbar():
-    st.sidebar.title("Sidebar menu")
-    st.sidebar.text_input("Class Name")
-    st.sidebar.text_input("Assessment Type (quiz or final)")
+    st.sidebar.title("Study Forge")
 
+    st.session_state.className = st.sidebar.text_input("Class Name")
+    st.session_state.assessment = st.sidebar.text_input("Assessment Type (quiz or final)")
     st.session_state.context = st.sidebar.text_area("Insert syllabus context/ core objective")
 
 def render_upload_screen():
@@ -33,6 +33,8 @@ def render_upload_screen():
 
             generated_text = gemini_service.generate_study_guide(
                 course_context=st.session_state.context,
+                course_className=st.session_state.className,
+                course_assessment=st.session_state.assessment,
                 file_bytes=file_bytes,
                 mime_type=mime_type)
 
