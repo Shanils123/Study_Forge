@@ -2,6 +2,56 @@ import streamlit as st
 import gemini_service
 import json
 
+st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto+Slab:wght@700&display=swap');
+
+        .stApp {
+            background-color: #1A1C23;
+            color: #F2F4F8;
+            font-family: 'Inter', sans-serif;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Roboto Slab', serif !important;
+            color: #F2F4F8 !important;
+        }
+
+        .stButton > button {
+            background-color: #252833;
+            color: #D97330;
+            border: 2px solid #D97330;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .stButton > button:hover {
+            background-color: #D97330;
+            color: #1A1C23;
+            border-color: #D97330;
+        }
+
+        .stTextInput > div > div > input, 
+        .stTextArea > div > div > textarea {
+            background-color: #252833;
+            color: #F2F4F8;
+            border: 1px solid #4A4D59;
+            border-radius: 6px;
+        }
+
+        .streamlit-expanderHeader {
+            background-color: #252833;
+            border-radius: 8px;
+            border: 1px solid #4A4D59;
+        }
+        
+        [data-testid="stSidebar"] {
+            background-color: #15171C;
+            border-right: 1px solid #252833;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 def init_session_state():
     if "view" not in st.session_state:
         st.session_state.view = "upload"
@@ -11,7 +61,6 @@ def init_session_state():
         st.session_state.answers = {}
     if "generated_data" not in st.session_state:
         st.session_state.generated_data = None
-
 
 def clear_data():
     st.session_state.generated_data = None
@@ -25,6 +74,7 @@ def render_siderbar():
         ["Standard Guide", "Interactive Flashcard", "Exam Simulator"],
         on_change=clear_data
     )
+    
     st.session_state.className = st.sidebar.text_input("Class Name")
     st.session_state.context = st.sidebar.text_area("Insert syllabus context/ core objective")
 
@@ -41,15 +91,21 @@ def render_upload_screen():
                 file_bytes = upload_file.getvalue()
                 mime_type = upload_file.type
 
-            st.session_state.generated_data = gemini_service.generate_study_guide(
-                course_mode=st.session_state.mode,
-                course_context=st.session_state.context,
-                course_className=st.session_state.className,
-                course_assessment=st.session_state.assessment,
-                file_bytes=file_bytes,
-                mime_type=mime_type
-            )
-            st.success("Study time!")
+            try:
+                st.session_state.generated_data = gemini_service.generate_study_guide(
+                    course_mode=st.session_state.mode,
+                    course_context=st.session_state.context,
+                    course_className=st.session_state.className,
+                    course_assessment="", 
+                    file_bytes=file_bytes,
+                    mime_type=mime_type
+                )
+                st.success("Study time!")
+            except Exception as e:
+                if "429" in str(e) or "quota" in str(e).lower():
+                    st.warning("⏳ The Forge is cooling down. You hit the API rate limit. Please wait 60 seconds and try again.")
+                else:
+                    st.error("The AI is glitching. Please check your connection and try again.")
 
     if st.session_state.generated_data:
         generated_text = st.session_state.generated_data
@@ -113,6 +169,7 @@ def render_upload_screen():
             except Exception as e:
                 st.error("The AI is glitching. Please try again!")
                 st.write("Output for debugging: ", generated_text)
+                
         else:
             st.write(generated_text)
 
