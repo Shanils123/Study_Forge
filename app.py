@@ -52,6 +52,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# STATE MANAGEMENT
 def init_session_state():
     if "view" not in st.session_state:
         st.session_state.view = "upload"
@@ -66,6 +67,7 @@ def clear_data():
     st.session_state.generated_data = None
     st.session_state.answers = {}
 
+# SIDEBAR NAVIGATION
 def render_siderbar():
     st.sidebar.title("Study Forge")
 
@@ -78,6 +80,7 @@ def render_siderbar():
     st.session_state.className = st.sidebar.text_input("Class Name")
     st.session_state.context = st.sidebar.text_area("Insert syllabus context/ core objective")
 
+# MAIN APPLICATION LOGIC
 def render_upload_screen():
     st.title("Recall Engine")
     upload_file = st.file_uploader("Upload PDF, JPEG, etc...", type=["pdf", "txt", "png", "jpg"])
